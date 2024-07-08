@@ -39,7 +39,7 @@ const createMenu = async (req, res) => {
     try {
         const [result] = await db.query(sql, [nombre, precio, imagen, descripcion, isdisponible]);
         const newMenu = { id: result.insertId, nombre, precio, imagen, descripcion, isdisponible };
-        res.json({ message: 'Menu created', movie: newMenu });
+        res.json({ message: 'Menu created', menu: newMenu });
     } catch (error) {
         console.error('Error al crear el menú:', error);
         res.status(500).send('Error interno del servidor');
@@ -57,7 +57,7 @@ const updateMenu = async(req, res) => {
             res.status(404).send('Menú no encontrado');
         } else {
             const updatedMenu = { id, nombre, precio, imagen, descripcion, isdisponible };
-            res.json({ message: 'Menu updated', movie: updatedMenu });
+            res.json({ message: 'Menu updated', menu: updatedMenu });
         }
     } catch (error) {
         console.error('Error al actualizar el menú:', error);
@@ -87,7 +87,7 @@ const deleteMenu = async (req, res) => {
         if (result.affectedRows === 0) {
             res.status(404).send('Menú no encontrado');
         } else {
-            res.json({ message: 'Menu deleted', movie: menuToDelete });
+            res.json({ message: 'Menu deleted', menu: menuToDelete });
         }
     } catch (error) {
         console.error('Error al eliminar el menú:', error);
