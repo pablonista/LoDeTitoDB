@@ -2,10 +2,10 @@
 // Importamos los módulos necesarios
 import express from 'express';
 import dotenv from 'dotenv';
-import moviesRouter from './routes/menuRoutes.js';
-import UsersRouter from './routes/userRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-import authenticateToken from './middlewares/authMiddleware.js'; 
+import menuesRouter from './src/routes/menuRoutes.js';
+import usersRouter from './src/routes/userRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
+import authenticateToken from './src/middlewares/authMiddleware.js'; 
 // Configuramos las variables de entorno desde el archivo .env
 dotenv.config();
 
@@ -16,13 +16,13 @@ const app = express();
 app.use(express.json());
 
 // Definimos la ruta para películas y llamamos al router de películas de manera autentificada
-app.use('/menues',authenticateToken, moviesRouter);
+app.use('/menues',authenticateToken, menuesRouter);
 
 //Definimos la ruta para las reservas y llamomos al router de reservas
 //app.use('/reservas',authenticateToken, reservasRouter);
 
 // Definimos la ruta para usuarios y llamamos al router de usuarios
-app.use('/usuarios', UsersRouter);
+app.use('/usuarios', usersRouter);
 
 //Definimos la ruta de la autentificacion
 app.use('/auth',authRoutes);

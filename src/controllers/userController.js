@@ -3,7 +3,7 @@ import pool from '../db/db.js';
 
 const getAllUsers = async (req, res) => {
     try {
-        const sql = 'SELECT usuarios.idusuario, usuarios.nombre, usuarios.password, roles.nombre AS rol'
+        const sql = 'SELECT usuarios.idusuario, usuarios.nombre, usuarios.apellido, usuarios.fechanacimiento, usuarios.email, usuarios.contrasena, usuarios.pregunta, usuarios.respuesta, roles.nombre AS rol, usuarios.islogueado'
         +' FROM usuarios'
         +' INNER JOIN roles ON usuarios.idrol = roles.idrol';
         const result = await db.query(sql);
@@ -16,7 +16,7 @@ const getAllUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    const sql = 'SELECT usuarios.idusuario, usuarios.nombre, usuarios.password, roles.nombre AS rol'
+    const sql = 'SELECT usuarios.idusuario, usuarios.nombre, usuarios.apellido, usuarios.fechanacimiento, usuarios.email, usuarios.contrasena, usuarios.pregunta, usuarios.respuesta, roles.nombre AS rol, usuarios.islogueado'
         +' FROM usuarios'
         +' INNER JOIN roles ON usuarios.idrol = roles.idrol'+ ' WHERE idusuario = ?';
 
@@ -35,14 +35,14 @@ const getUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { nombre, password, idrol } = req.body;
-    const sql = 'INSERT INTO usuarios (nombre, password, idrol) VALUES (?, ?, ?)';
+    const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
+    const sql = 'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
 
     try {
-        const [result] = await db.query(sql, [nombre, password, idrol]);
-        const newUser = { id: result.insertId, nombre, password, idrol };
-        res.json({ message: 'User created', movie: newUser });
+        const [result] = await db.query(sql, [nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado]);
+        const newUser = { id: result.insertId, nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
+        res.json({ message: 'User created', User: newUser });
     } catch (error) {
         console.error('Error al crear el usuario:', error);
         res.status(500).send('Error interno del servidor');
@@ -51,16 +51,16 @@ const createUser = async (req, res) => {
 
 const updateUser = async(req, res) => {
     const id = parseInt(req.params.id, 10);
-    const { nombre, password, idrol } = req.body;
-    const sql = `UPDATE usuarios SET nombre = ?, password = ?, idrol = ? WHERE id = ?`
+    const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
+    const sql = `UPDATE usuarios SET nombre = ?, apellido = ?, fechanacimiento = ?, email = ?, password = ?, pregunta = ?, respuesta = ?, idrol = ?, islogueado = ? WHERE idusuario = ?`
     try {
-        const [result] = await db.query(sql, [nombre, password, idrol, id]);
+        const [result] = await db.query(sql, [nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado, id]);
 
         if (result.affectedRows === 0) {
             res.status(404).send('Usuario no encontrado');
         } else {
-            const updatedUser = { id, nombre, password, idrol };
-            res.json({ message: 'User updated', movie: updatedUser });
+            const updatedUser = { id, nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
+            res.json({ message: 'User updated', User: updatedUser });
         }
     } catch (error) {
         console.error('Error al actualizar el usuario:', error);
@@ -70,8 +70,8 @@ const updateUser = async(req, res) => {
 
 const deleteUser = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    const selectSql = 'SELECT * FROM usuarios WHERE id = ?';
-    const deleteSql = 'DELETE FROM usuarios WHERE id = ?';
+    const selectSql = 'SELECT * FROM usuarios WHERE idusuario = ?';
+    const deleteSql = 'DELETE FROM usuarios WHERE idusuario = ?';
 
     try {
         // Recuperar los datos del usuario antes de eliminarlo

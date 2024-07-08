@@ -1,5 +1,5 @@
 
-//src/routes/movieRoutes.js
+//src/routes/menuRoutes.js
 import express from 'express';
 import {getAllMenues,getMenuById,createMenu,updateMenu,deleteMenu} from '../controllers/menuController.js';
 import upload from '../upload.js'; // Importar la configuración de multer

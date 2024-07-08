@@ -90,12 +90,13 @@ pool.getConnection()
                     fullname VARCHAR(255) NOT NULL,
                     email VARCHAR(255) NOT NULL,
                     phone VARCHAR(255) NOT NULL,
-                    table INT NOT NULL,
-                    food VARCHAR(255) NOT NULL,
+                    mesa INT NOT NULL,
+                    idmenu INT NOT NULL,
                     date DATE NOT NULL,
                     horario VARCHAR(255) NOT NULL,
-                    idusuario VARCHAR(45) NOT NULL,
-                    FOREIGN KEY (idusuario) REFERENCES usuarios (idusuario)
+                    idusuario INT NOT NULL,
+                    FOREIGN KEY (idusuario) REFERENCES usuarios (idusuario),
+                    FOREIGN KEY (idmenu) REFERENCES menues (idmenu)
                 )
             `);
             console.log('Table reservas ensured');
