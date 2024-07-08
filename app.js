@@ -1,0 +1,36 @@
+//src/app.js
+// Importamos los módulos necesarios
+import express from 'express';
+import dotenv from 'dotenv';
+import moviesRouter from './routes/menuRoutes.js';
+import UsersRouter from './routes/userRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import authenticateToken from './middlewares/authMiddleware.js'; 
+// Configuramos las variables de entorno desde el archivo .env
+dotenv.config();
+
+// Creamos una instancia de la aplicación Express
+const app = express();
+
+// Middleware para analizar cuerpos JSON en las solicitudes entrantes
+app.use(express.json());
+
+// Definimos la ruta para películas y llamamos al router de películas de manera autentificada
+app.use('/menues',authenticateToken, moviesRouter);
+
+//Definimos la ruta para las reservas y llamomos al router de reservas
+//app.use('/reservas',authenticateToken, reservasRouter);
+
+// Definimos la ruta para usuarios y llamamos al router de usuarios
+app.use('/usuarios', UsersRouter);
+
+//Definimos la ruta de la autentificacion
+app.use('/auth',authRoutes);
+
+// Definimos el puerto en el que nuestro servidor escuchará las solicitudes
+const PORT = process.env.PORT || 3000;
+
+// Iniciamos el servidor y lo configuramos para que escuche en el puerto definido
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
