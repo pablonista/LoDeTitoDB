@@ -11,18 +11,24 @@ import pool from '../db/db.js';
 // Importa la configuración (Clave secreta y duración del token)
 import config from '../config/config.js';
 
+const formatDate = (dateString) => {
+    const [day, month, year] = dateString.split('-');
+    return `${year}-${month}-${day}`;
+};
+
 const register = async (req, res) => {
     const connection = await pool.getConnection();
     try {
         // Extrae el nombre de usuario, la contraseña y el idrol del cuerpo de la solicitud
-        const { nombre, password, idrol } = req.body;
+        const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
+        const formattedDate = formatDate(fechanacimiento);
         // Cifra la contraseña usando bcrypt
-        const hashedPassword = bcrypt.hashSync(password, 8);
+        const hashedPassword = bcrypt.hashSync(contrasena, 8);
 
         // Inserta el nuevo usuario en la base de datos
         const [result] = await connection.query(
-            'INSERT INTO usuarios (nombre, password, idrol) VALUES (?, ?, ?)',
-            [nombre, hashedPassword, idrol]
+            'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [nombre,  apellido, formattedDate, email, hashedPassword, pregunta, respuesta, idrol, islogueado] 
         );
 
         // Genera un token JWT para el nuevo usuario
@@ -41,17 +47,17 @@ const login = async (req, res) => {
     const connection = await pool.getConnection();
     try {
         // Extrae el nombre de usuario y la contraseña del cuerpo de la solicitud
-        const { nombre, password } = req.body;
+        const { email, contrasena } = req.body;
 
         // Busca el usuario en la base de datos
-        const [rows] = await connection.query('SELECT * FROM usuarios WHERE nombre = ?', [nombre]);
+        const [rows] = await connection.query('SELECT * FROM usuarios WHERE email = ?', [email]);
         const user = rows[0];
 
         // Si el usuario no existe, envía un mensaje de error 404
         if (!user) return res.status(404).send('User not found');
 
         // Compara la contraseña proporcionada con la contraseña cifrada almacenada
-        const passwordIsValid = bcrypt.compareSync(password, user.password);
+        const passwordIsValid = bcrypt.compareSync(contrasena, user.contrasena);
 
         // Si la contraseña no es válida, envía un mensaje de error 401
         if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
