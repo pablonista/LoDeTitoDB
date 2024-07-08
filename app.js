@@ -15,6 +15,10 @@ const app = express();
 // Middleware para analizar cuerpos JSON en las solicitudes entrantes
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+
 // Definimos la ruta para películas y llamamos al router de películas de manera autentificada
 app.use('/menues',authenticateToken, menuesRouter);
 
