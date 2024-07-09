@@ -25,14 +25,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.resolve('public/index.html'));
 });
 
-// Rutas para los menús
-
 
 // Definimos la ruta para películas y llamamos al router de películas de manera autentificada
 app.use('/menues',authenticateToken, menuesRouter);
 
 //Definimos la ruta para las reservas y llamomos al router de reservas
-//app.use('/reservas',authenticateToken, reservasRouter);
+app.use('/reservas',authenticateToken, reservationRouter);
 
 // Definimos la ruta para usuarios y llamamos al router de usuarios
 app.use('/usuarios', usersRouter);

@@ -86,7 +86,7 @@ pool.getConnection()
             // Crear la tabla reservas si no existe
             await connection.query(`
                 CREATE TABLE IF NOT EXISTS reservas (
-                    idreservas INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    idreserva INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     fullname VARCHAR(255) NOT NULL,
                     email VARCHAR(255) NOT NULL,
                     phone VARCHAR(255) NOT NULL,
