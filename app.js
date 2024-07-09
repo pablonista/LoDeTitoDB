@@ -6,6 +6,7 @@ import menuesRouter from './src/routes/menuRoutes.js';
 import usersRouter from './src/routes/userRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 import authenticateToken from './src/middlewares/authMiddleware.js'; 
+import path from 'path';
 // Configuramos las variables de entorno desde el archivo .env
 dotenv.config();
 
@@ -17,6 +18,14 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+
+// Route to serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.resolve('public/index.html'));
+});
+
+// Rutas para los menús
 
 
 // Definimos la ruta para películas y llamamos al router de películas de manera autentificada
