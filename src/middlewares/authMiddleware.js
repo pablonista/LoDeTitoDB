@@ -1,7 +1,8 @@
 //src/middlewares/authMiddleware.js
-//Importa el modulo jsonwebtoken para manejar JWT
+
+// Importa el modulo jsonwebtoken para manejar JWT
 import jwt from 'jsonwebtoken';
-//Importa el modulo de configuracion (clave secreta y duracion del token)
+// Importa el modulo de configuracion (clave secreta y duracion del token)
 import config from '../config/config.js';
 
 const authenticateToken = (req, res, next) => {

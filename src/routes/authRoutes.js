@@ -1,4 +1,5 @@
-//src/routes/authRoutes.js
+// src/routes/authRoutes.js
+
 // Importa el módulo express
 import express from 'express';
 
@@ -18,10 +19,13 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 
 // Ruta para cerrar sesión del usuario
-router.get('/logout', authMiddleware, authController.logout);
+router.post('/logout', authMiddleware, authController.logout);
 
 // Ruta para verificar si un correo electrónico está disponible
 router.post('/check-email', authController.checkEmail);
+
+// Ruta para verificar el token
+router.get('/user', authMiddleware, authController.verifyToken);
 
 // Ruta protegida de ejemplo
 router.get('/protected', authMiddleware, (req, res) => {

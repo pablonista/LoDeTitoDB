@@ -60,7 +60,7 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
-    let hashedPassword = contrasena;
+    let hashedPassword = bcrypt.hashSync(contrasena, 8);
 
     // Formatea la fecha de nacimiento antes de actualizarla en la base de datos
     const formattedDate = formatDate(fechanacimiento);

@@ -43,34 +43,38 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const connection = await pool.getConnection();
-    try {
-        // Extrae el nombre de usuario y la contraseña del cuerpo de la solicitud
-        const { email, contrasena } = req.body;
+    const { email, contrasena } = req.body;
 
-        // Busca el usuario en la base de datos
-        const [rows] = await connection.query('SELECT * FROM usuarios WHERE email = ?', [email]);
-        const user = rows[0];
+  try {
+    const [rows] = await pool.query("SELECT * FROM usuarios WHERE email = ?", [email]);
+    const user = rows[0];
 
-        // Si el usuario no existe, envía un mensaje de error 404
-        if (!user) return res.status(404).send('User not found');
-
-        // Compara la contraseña proporcionada con la contraseña cifrada almacenada
-        const passwordIsValid = bcrypt.compareSync(contrasena, user.contrasena);
-
-        // Si la contraseña no es válida, envía un mensaje de error 401
-        if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
-
-        // Genera un token JWT usando el id del usuario
-        const token = jwt.sign({ id: user.idusuario }, config.secretKey, { expiresIn: config.tokenExpiresIn });
-
-        // Envía el token al cliente con el estado 200 (ok)
-        res.status(200).send({ auth: true, token });
-    } catch (error) {
-        res.status(500).send({ message: 'There was a problem logging in the user.', error });
-    } finally {
-        connection.release();
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
+
+    const isPasswordValid = await bcrypt.compare(contrasena, user.contrasena);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign({ id: user.idusuario, idrol: user.idrol }, process.env.JWT_SECRET, {
+      expiresIn: "1h"
+    });
+
+    res.json({
+      token,
+      user: {
+        id: user.idusuario,
+        email: user.email,
+        idrol: user.idrol
+      }
+    });
+  } catch (error) {
+    console.error("Error al iniciar sesión:", error);
+    res.status(500).json({ message: "Error al iniciar sesión" });
+  }
 };
 
 const logout = (req, res) => {
@@ -99,4 +103,19 @@ const checkEmail = async (req, res) => {
     }
 }
 
-export default { register, login, logout, checkEmail };
+const verifyToken = (req,res,next) => {
+    const token = req.headers['authorization'];
+    if (!token) {
+        return res.status(403).send({ auth: false, message: 'No token provided.' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
+        }
+        req.userId = decoded.id;
+        next();
+    });
+};
+
+export default { register, login, logout, checkEmail, verifyToken };
