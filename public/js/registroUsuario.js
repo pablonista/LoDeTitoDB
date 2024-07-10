@@ -1,6 +1,7 @@
 //public/js/registroUsuario.js
+// Clase Usuario para representar un usuario
 class Usuario {
-    constructor(nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, tipoDeUsuario, isLogueado) {
+    constructor(nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.fechaNacimiento = fechaNacimiento;
@@ -8,8 +9,6 @@ class Usuario {
         this.contrasena = contrasena;
         this.pregunta = pregunta;
         this.respuesta = respuesta;
-        this.tipoDeUsuario = tipoDeUsuario;
-        this.isLogueado = isLogueado;
     }
 }
 
@@ -26,7 +25,7 @@ async function handleFormSubmit(event) {
     let confirmarContrasena = document.querySelector('input[name="confirmarContrasena"]').value;
     let pregunta = document.querySelector('select[name="pregunta"]').value;
     let respuesta = document.querySelector('input[name="respuesta"]').value;
- 
+
     console.log('Fecha de Nacimiento:', fechaNacimiento); // Añade este log para verificar el valor
 
     // Validar los campos del formulario
@@ -56,12 +55,35 @@ async function handleFormSubmit(event) {
         return false;
     }
 
+    // Verificar si el correo electrónico ya está registrado
+    try {
+        const response = await fetch('/auth/check-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            if (errorData.message === 'Email already registered') {
+                alert("El correo electrónico ya está registrado.");
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert("Hubo un error al verificar el correo electrónico. Por favor, inténtelo de nuevo.");
+        return false;
+    }
+
     // Crear el nuevo usuario
     let nuevoUsuario = new Usuario(nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta);
 
     // Enviar el nuevo usuario a la base de datos
     try {
-        const response = await fetch('/auth/register', {
+        const registerResponse = await fetch('/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -69,11 +91,11 @@ async function handleFormSubmit(event) {
             body: JSON.stringify(nuevoUsuario)
         });
 
-        if (response.ok) {
+        if (registerResponse.ok) {
             alert("¡Registro exitoso!");
             window.location.href = "../pages/login.html";
         } else {
-            const errorData = await response.json();
+            const errorData = await registerResponse.json();
             alert("Error en el registro: " + errorData.message);
         }
     } catch (error) {
@@ -121,6 +143,7 @@ function validarContrasena(contrasena) {
     return true;
 }
 
+// Función para validar la pregunta y respuesta de seguridad
 function validarPreguntaRespuesta(pregunta, respuesta) {
     if (pregunta.trim() === '' || respuesta.trim() === '') {
         return false;

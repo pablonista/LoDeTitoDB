@@ -78,4 +78,25 @@ const logout = (req, res) => {
     res.status(200).send({ auth: false, token: null });
 };
 
-export default { register, login, logout };
+// Función para verificar si un correo electrónico ya está registrado
+const checkEmail = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Consulta para verificar si el correo electrónico ya existe en la base de datos
+        const [result] = await pool.query('SELECT COUNT(*) AS count FROM usuarios WHERE email = ?', [email]);
+
+        if (result[0].count > 0) {
+            // El correo electrónico ya está registrado
+            return res.status(400).json({ message: 'Email already registered' });
+        }
+
+        // El correo electrónico no está registrado
+        return res.status(200).json({ message: 'Email available' });
+    } catch (error) {
+        console.error('Error checking email:', error);
+        return res.status(500).json({ message: 'Error checking email' });
+    }
+}
+
+export default { register, login, logout, checkEmail };

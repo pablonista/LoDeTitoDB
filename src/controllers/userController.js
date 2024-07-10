@@ -1,6 +1,13 @@
 //src/controllers/userController.js
 import db from '../db/db.js';
 import pool from '../db/db.js';
+import bcrypt from 'bcryptjs';
+
+const formatDate = (dateString) => {
+    if (!dateString) return null; // Maneja el caso cuando la fecha es null o undefined
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month}-${day}`;
+};
 
 const getAllUsers = async (req, res) => {
     try {
@@ -50,18 +57,24 @@ const createUser = async (req, res) => {
     }
 };
 
-const updateUser = async(req, res) => {
+const updateUser = async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
-    const sql = `UPDATE usuarios SET nombre = ?, apellido = ?, fechanacimiento = ?, email = ?, password = ?, pregunta = ?, respuesta = ?, idrol = ?, islogueado = ? WHERE idusuario = ?`
+    let hashedPassword = contrasena;
+
+    // Formatea la fecha de nacimiento antes de actualizarla en la base de datos
+    const formattedDate = formatDate(fechanacimiento);
+
+    const sql = `UPDATE usuarios SET nombre = ?, apellido = ?, fechanacimiento = ?, email = ?, contrasena = ?, pregunta = ?, respuesta = ?, idrol = ?, islogueado = ? WHERE idusuario = ?`;
+
     try {
-        const [result] = await db.query(sql, [nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado, id]);
+        const [result] = await db.query(sql, [nombre, apellido, formattedDate, email, hashedPassword, pregunta, respuesta, idrol, islogueado, id]);
 
         if (result.affectedRows === 0) {
             res.status(404).send('Usuario no encontrado');
         } else {
-            const updatedUser = { id, nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
-            res.json({ message: 'User updated', User: updatedUser });
+            const updatedUser = { id, nombre, apellido, fechanacimiento, email, pregunta, respuesta, idrol, islogueado };
+            res.json({ message: 'Usuario actualizado', user: updatedUser });
         }
     } catch (error) {
         console.error('Error al actualizar el usuario:', error);
