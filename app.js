@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import menuesRouter from './src/routes/menuRoutes.js';
 import usersRouter from './src/routes/userRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
+import reservationsRoutes from './src/routes/reservationRoutes.js'
 import authenticateToken from './src/middlewares/authMiddleware.js'; 
 import path from 'path';
 // Configuramos las variables de entorno desde el archivo .env
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 
-// Route to serve index.html
+// Route al serve index.html
 app.get('/', (req, res) => {
     res.sendFile(path.resolve('public/index.html'));
 });
@@ -30,7 +31,7 @@ app.get('/', (req, res) => {
 app.use('/menues',authenticateToken, menuesRouter);
 
 //Definimos la ruta para las reservas y llamomos al router de reservas
-app.use('/reservas',authenticateToken, reservationRouter);
+app.use('/reservas',authenticateToken, reservationsRoutes);
 
 // Definimos la ruta para usuarios y llamamos al router de usuarios
 app.use('/usuarios', usersRouter);

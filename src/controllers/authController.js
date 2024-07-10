@@ -12,31 +12,30 @@ import pool from '../db/db.js';
 import config from '../config/config.js';
 
 const formatDate = (dateString) => {
-    const [day, month, year] = dateString.split('-');
+    if (!dateString) return null; // Maneja el caso cuando la fecha es null o undefined
+    const [day, month, year] = dateString.split('/');
     return `${year}-${month}-${day}`;
 };
 
 const register = async (req, res) => {
     const connection = await pool.getConnection();
     try {
-        // Extrae el nombre de usuario, la contraseña y el idrol del cuerpo de la solicitud
-        const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
-        const formattedDate = formatDate(fechanacimiento);
-        // Cifra la contraseña usando bcrypt
+        const { nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta } = req.body;
+        const formattedDate = formatDate(fechaNacimiento);
         const hashedPassword = bcrypt.hashSync(contrasena, 8);
+        const idrol = 1;
+        const islogueado = 0; // O cualquier otro valor por defecto que sea adecuado para tu lógica
 
-        // Inserta el nuevo usuario en la base de datos
         const [result] = await connection.query(
             'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [nombre,  apellido, formattedDate, email, hashedPassword, pregunta, respuesta, idrol, islogueado] 
+            [nombre, apellido, formattedDate, email, hashedPassword, pregunta, respuesta, idrol, islogueado]
         );
 
-        // Genera un token JWT para el nuevo usuario
         const token = jwt.sign({ id: result.insertId }, config.secretKey, { expiresIn: config.tokenExpiresIn });
 
-        // Envía el token como respuesta al cliente
         res.status(201).send({ auth: true, token });
     } catch (error) {
+        console.error('Error during registration:', error);
         res.status(500).send({ message: 'There was a problem registering the user.', error });
     } finally {
         connection.release();

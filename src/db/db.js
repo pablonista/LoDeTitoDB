@@ -71,7 +71,7 @@ pool.getConnection()
                     idusuario INT AUTO_INCREMENT PRIMARY KEY,
                     nombre VARCHAR(255) NOT NULL,
                     apellido VARCHAR(255) NOT NULL,
-                    fechanacimiento DATE,
+                    fechanacimiento VARCHAR(10) NOT NULL,
                     email VARCHAR(255) NOT NULL,
                     contrasena VARCHAR(255) NOT NULL,
                     pregunta VARCHAR(255) NOT NULL,

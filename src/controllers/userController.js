@@ -1,3 +1,4 @@
+//src/controllers/userController.js
 import db from '../db/db.js';
 import pool from '../db/db.js';
 
@@ -35,13 +36,13 @@ const getUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
+    const { nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
     const sql = 'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
 
     try {
-        const [result] = await db.query(sql, [nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado]);
-        const newUser = { id: result.insertId, nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
+        const [result] = await db.query(sql, [nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado]);
+        const newUser = { id: result.insertId, nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
         res.json({ message: 'User created', User: newUser });
     } catch (error) {
         console.error('Error al crear el usuario:', error);
