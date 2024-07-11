@@ -1,86 +1,47 @@
-class Usuario {
-    constructor(nombre, apellido, fechaNacimiento, email, contrasena,pregunta,respuesta, tipoDeUsuario,isLogueado) {
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.fechaNacimiento = fechaNacimiento;
-        this.email = email;
-        this.contrasena = contrasena;
-        this.pregunta=pregunta;
-        this.respuesta=respuesta;
-        this.tipoDeUsuario = tipoDeUsuario;
-        this.isLogueado = isLogueado;
+//public/js/listarUsuarios.js
+// Función para cargar los usuarios desde la base de datos
+async function cargarUsuariosDesdeDB() {
+    try {
+        const response = await fetch('/usuarios');
+        if (!response.ok) {
+            throw new Error('Error en la respuesta de la base de datos');
+        }
+        const usuarios = await response.json();
+        return usuarios;
+    } catch (error) {
+        console.error('Error al cargar los usuarios desde la base de datos:', error);
     }
 }
-// Array para almacenar usuarios registrados
-let usuariosRegistrados = [];
-let usuarioEncontrado=new Usuario();
 
-// Recuperar los datos del almacenamiento local al cargar la página
-window.addEventListener('DOMContentLoaded', function() {
-    const usuarioEncontradoString = localStorage.getItem('usuarioEncontrado');
-    if (usuarioEncontradoString) {
-        usuarioEncontrado = JSON.parse(usuarioEncontradoString);
-        tipoUsuario = usuarioEncontrado.tipoDeUsuario;
-    }
-    if (!usuarioEncontrado || !usuarioEncontrado.isLogueado || usuarioEncontrado.tipoDeUsuario!=="admin") {
-        sesionIniciada();
-    }
-    let usuariosRegistradosString = localStorage.getItem('usuariosRegistrados');
-    if (usuariosRegistradosString) {
-        usuariosRegistrados = JSON.parse(usuariosRegistradosString);
-    }
-    cargarTablaUsuarios();
-    // Función para mostrar u ocultar elementos dependiendo del tipo de usuario y si está logueado
-    function mostrarElementosPorTipoUsuario() {
-        const loginLink = document.getElementById("loginLink");
-        const registerLink = document.getElementById("registerLink");
-        const adminDropdown = document.getElementById("adminDropdown");
-        const reservaLink = document.getElementById("reservaLink");
-        const closeLink = document.getElementById("closeLink");
+// Función para eliminar un usuario de la base de datos
+async function eliminarUsuarioDeDB(idusuario) {
+    try {
+        const response = await fetch(`/usuarios/${idusuario}`, {
+            method: 'DELETE',
+        });
 
-        // Ocultar todos los elementos primero
-        loginLink.style.display = "none";
-        registerLink.style.display = "none";
-        adminDropdown.style.display = "none";
-        reservaLink.style.display = "none";
-        closeLink.style.display = "none";
-
-        if (tipoUsuario === "admin") {
-            adminDropdown.style.display = "block"; // Mostrar el menú de administrador
-            closeLink.style.display = "block";
+        if (response.ok) {
+            return await response.json();
         } else {
-            //loginLink.style.display = "block"; // Mostrar el botón de iniciar sesión
-            //registerLink.style.display = "block"; // Mostrar el botón de registrarse
-            if (usuarioEncontrado && usuarioEncontrado.isLogueado) {
-                reservaLink.style.display = "block"; // Mostrar el enlace de reserva solo si está logueado
-                closeLink.style.display = "block";
-            }
+            console.error('Error al eliminar el usuario:', response.statusText);
         }
+    } catch (error) {
+        console.error('Error al eliminar el usuario desde la base de datos:', error);
     }
+}
 
-    // Llamar a la función al cargar la página
-    mostrarElementosPorTipoUsuario();
+// Función para formatear la fecha de nacimiento a dd/mm/yyyy
+function formatearFecha(fecha) {
+    if (!fecha) return '';
+    const date = new Date(fecha);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses empiezan desde 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
-    // Agregar un evento de clic al elemento closeLink
-    const closeLink = document.getElementById("closeLink");
-    closeLink.addEventListener("click", function(event) {
-        // Prevenir el comportamiento predeterminado del enlace
-        event.preventDefault();
-
-        // Llamar a la función limpiarUsuario
-        limpiarUsuario();
-        window.location.href = "../index.html";
-    });
-});
-
-// Función para guardar los datos en el almacenamiento local antes de salir de la página
-window.addEventListener('beforeunload', function() {
-    if(usuarioEncontrado.isLogueado && usuarioEncontrado.tipoDeUsuario==="admin"){
-        localStorage.setItem('usuariosRegistrados', JSON.stringify(usuariosRegistrados));
-    }
-});
-
-function cargarTablaUsuarios() {
+// Función para cargar la tabla de usuarios
+async function cargarTablaUsuarios() {
     // Obtener referencia a la tabla y el cuerpo de la tabla
     let tablaUsuarios = document.getElementById('tablaUsuarios');
     let tbody = tablaUsuarios.querySelector('tbody');
@@ -88,8 +49,13 @@ function cargarTablaUsuarios() {
     // Limpiar contenido existente en el cuerpo de la tabla
     tbody.innerHTML = '';
 
-    // Verificar si hay datos en usuariosRegistrados
-    console.log('Datos de usuarios registrados:', usuariosRegistrados);
+    // Cargar usuarios desde la base de datos
+    const usuariosRegistrados = await cargarUsuariosDesdeDB();
+
+    if (!usuariosRegistrados) {
+        console.error('No se pudieron cargar los usuarios desde la base de datos.');
+        return;
+    }
 
     // Iterar sobre el array de usuarios registrados
     usuariosRegistrados.forEach(usuario => {
@@ -98,10 +64,16 @@ function cargarTablaUsuarios() {
 
         // Crear y agregar celdas para cada atributo del usuario
         for (let key in usuario) {
-            // Excluir el campo booleano
-            if (typeof usuario[key] !== 'boolean') {
+            if (key !== 'idusuario' && key !== 'islogueado' && key !== 'contrasena') {
                 let cell = document.createElement('td');
-                cell.textContent = usuario[key];
+
+                // Formatear la fecha de nacimiento
+                if (key === 'fechanacimiento') {
+                    cell.textContent = formatearFecha(usuario[key]);
+                } else {
+                    cell.textContent = usuario[key];
+                }
+                
                 fila.appendChild(cell);
             }
         }
@@ -112,13 +84,11 @@ function cargarTablaUsuarios() {
         // Crear botón de "Editar" y asignarle un listener
         let editarBtn = document.createElement('button');
         editarBtn.textContent = 'Editar ';
-        // Agregar el icono de editar al botón
         let iconoEditar = document.createElement('i');
-        iconoEditar.classList.add('fas', 'fa-edit'); // Clases de Font Awesome para el icono de editar
+        iconoEditar.classList.add('fas', 'fa-edit');
         editarBtn.appendChild(iconoEditar);
         editarBtn.addEventListener('click', function() {
-            let usuarioEditar = editarUsuario(usuario.email)
-            console.log('Editar usuario:', usuario);
+            localStorage.setItem('usuarioAEditar', JSON.stringify(usuario));
             window.location.href = "./editar_usuario.html";
         });
         accionesCell.appendChild(editarBtn);
@@ -127,18 +97,23 @@ function cargarTablaUsuarios() {
         // Crear botón de "Eliminar" y asignarle un listener
         let eliminarBtn = document.createElement('button');
         eliminarBtn.textContent = 'Eliminar ';
-        // Agregar el icono de borrar al botón
         let iconoBorrar = document.createElement('i');
-        iconoBorrar.classList.add('fas', 'fa-trash-alt'); // Clases de Font Awesome para el icono de borrar
+        iconoBorrar.classList.add('fas', 'fa-trash-alt');
         eliminarBtn.appendChild(iconoBorrar);
-        eliminarBtn.addEventListener('click', function() {
-            eliminarUsuario(usuario.email);
-            console.log('Eliminar usuario:', usuario);
+        eliminarBtn.addEventListener('click', async function() {
+            const mensajeConfirmacion = `¿Está seguro de que desea eliminar al siguiente usuario?\n\n` +
+                `Nombre: ${usuario.nombre}\n` +
+                `Apellido: ${usuario.apellido}\n` +
+                `Email: ${usuario.email}\n` +
+                `Tipo de usuario: ${usuario.rol}\n`;
+            if (confirm(mensajeConfirmacion)) {
+                await eliminarUsuarioDeDB(usuario.idusuario);
+                cargarTablaUsuarios();
+            }
         });
         accionesCell.appendChild(eliminarBtn);
-
-        // Asignar la clase al botón "Eliminar"
         eliminarBtn.classList.add('btn-eliminar-usuario');
+
         // Agregar celda de acciones a la fila
         fila.appendChild(accionesCell);
 
@@ -149,72 +124,90 @@ function cargarTablaUsuarios() {
     console.log('Tabla de usuarios cargada');
 }
 
-function agregarUsuario(){
-    window.location.href ="./nuevo_usuario.html"
-}
+// Función para manejar el acceso según el tipo de usuario
+function manejarAccesoUsuario() {
+    const loginItem = document.getElementById("loginLink");
+    const registerItem = document.getElementById("registerLink");
+    const adminItem = document.getElementById("admin-item");
+    const reservaItem = document.getElementById("reservaLink");
+    const logoutItem = document.getElementById("logout-item");
 
-//
-// Función para editar un usuario del array usuariosRegistrados
-function editarUsuario(email) {
-    let usuario = usuariosRegistrados.find(usuario => usuario.email === email);
-    if (usuario) {
-        localStorage.setItem('usuarioAEditar', JSON.stringify(usuario));
-        window.location.href = "./editar_usuario.html";
-    } else {
-        console.log("Usuario no encontrado");
+    function updateNavbar() {
+        const token = localStorage.getItem("token");
+        const userString = localStorage.getItem("user");
+        const user = JSON.parse(userString);
+        console.log(user);
+
+        if (token && user) {
+            loginItem.style.display = "none";
+            registerItem.style.display = "none";
+            logoutItem.style.display = "block";
+
+            if (user.idrol === 2) {
+                adminItem.style.display = "block";
+                reservaItem.style.display = "block";
+            } else if (user.idrol === 1) {
+                adminItem.style.display = "none";
+                reservaItem.style.display = "block";
+            } else {
+                adminItem.style.display = "none";
+                reservaItem.style.display = "none";
+            }
+        } else {
+            loginItem.style.display = "block";
+            registerItem.style.display = "block";
+            logoutItem.style.display = "none";
+            adminItem.style.display = "none";
+            reservaItem.style.display = "none";
+        }
+
+        console.log("Token:", token);
+        console.log("User:", user);
     }
+
+    updateNavbar();
+
+    logoutItem.addEventListener("click", function() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        updateNavbar();
+        window.location.href = "/";
+    });
 }
 
-// Función para eliminar un usuario del array usuariosRegistrados
-function eliminarUsuario(email) {
-    // Obtener el usuario a eliminar
-    const usuarioAEliminar = usuariosRegistrados.find(usuario => usuario.email === email);
+// Ejecutar funciones al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Verificar si el usuario está autenticado antes de cargar la tabla
+    const token = localStorage.getItem("token");
+    const userString = localStorage.getItem("user");
 
-    // Construir el mensaje de confirmación con la información del usuario
-    const mensajeConfirmacion = `¿Está seguro de que desea eliminar al siguiente usuario?\n\n` +
-        `Nombre: ${usuarioAEliminar.nombre}\n` +
-        `Apellido: ${usuarioAEliminar.apellido}\n` +
-        `Email: ${usuarioAEliminar.email}\n` +
-        `Tipo de usuario: ${usuarioAEliminar.tipoDeUsuario}\n`;
-
-    // Mostrar ventana de confirmación
-    const confirmacion = confirm(mensajeConfirmacion);
-
-    // Si el usuario hace clic en "Aceptar", eliminar el usuario
-    if (confirmacion) {
-        // Filtrar el array para eliminar el usuario con el email proporcionado
-        usuariosRegistrados = usuariosRegistrados.filter(usuario => usuario.email !== email);
-
-        // Volver a cargar la tabla de usuarios para reflejar los cambios
-        cargarTablaUsuarios();
-
-        console.log('Usuario eliminado:', email);
-    } else {
-        console.log('Operación cancelada');
+    function cambiarFondo(){
+        var elemento = document.getElementById("miDiv");
+        // Cambia el fondo usando CSS a través de JavaScript
+        elemento.style.backgroundImage = "url('../assets/imagenes/Noaccess01.jpeg')";
+        elemento.style.backgroundSize = "cover"; // Esto asegura que la imagen cubra todo el div
+        elemento.style.backgroundPosition = "center"; // Centra la imagen en el div
+        elemento.style.height = "100vh"; // Ajusta la altura del div si es necesario
     }
-}
-function sesionIniciada() {
-    cambiarFondo
-    alert("No, acceso sin autorización. Se redireccionará al Inicio.")
-    window.location.href = "../index.html";
-}
-
-function cambiarFondo(){
-    var elemento = document.getElementById("miDiv");
     
-    // Cambia el fondo usando CSS a través de JavaScript
-    elemento.style.backgroundImage = "url('../assets/imagenes/Noaccess01.jpeg')";
-    elemento.style.backgroundSize = "cover"; // Esto asegura que la imagen cubra todo el div
-    elemento.style.backgroundPosition = "center"; // Centra la imagen en el div
-    elemento.style.height = "100vh"; // Ajusta la altura del div si es necesario
-}
 
-function limpiarUsuario() {
-    // Limpiar la variable de usuarioEncontrado
-    usuarioEncontrado = null;
+    if (!token || !userString) {
+        cambiarFondo();
+        alert('No tiene acceso a la página');
+        window.location.href = "/";
+        return;
+    }
 
-    // Limpiar el almacenamiento local
-    localStorage.removeItem('usuarioEncontrado');
-    // Mostrar mensaje de éxito o realizar otras acciones necesarias
-    alert("¡Se cerro exitosamente la sesión!");
-}
+    // Si está autenticado, cargar la tabla y manejar el acceso
+    cargarTablaUsuarios();
+    manejarAccesoUsuario();
+
+    // Asignar evento al botón de agregar usuario
+    const agregarUsuarioBtn = document.getElementById('agregarUsuarioBtn');
+    if (agregarUsuarioBtn) {
+        agregarUsuarioBtn.addEventListener('click', function() {
+            window.location.href = './nuevo_usuario.html';
+        });
+    }
+
+});

@@ -1,3 +1,4 @@
+<!--/pages/nuevo_usuario.html-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,10 +21,10 @@
     <form action="#" method="POST" onsubmit="return handleFormSubmit(event);">
       <input type="text" name="nombre" placeholder="Nombre" required>
       <input type="text" name="apellido" placeholder="Apellido" required>
-      <input type="text" name="fecha_nacimiento" placeholder="Fecha de Nacimiento" required>
+      <input type="text" name="fechaNacimiento" placeholder="Fecha de Nacimiento" required>
       <input type="email" name="email" placeholder="E-mail" required>
       <input type="password" name="contrasena" placeholder="Contraseña" required>
-      <input type="password" name="confirmar_contrasena" placeholder="Confirmar Contraseña" required>
+      <input type="password" name="confirmarContrasena" placeholder="Confirmar Contraseña" required>
       <select name="pregunta" class="cbpreguntas" id="preguntas" required>
         <option value="" disabled selected hidden>Selecciona una pregunta para recuperar contraseña</option>
         <option value="¿Cuál es tu fecha de nacimiento?">¿Cuál es tu fecha de nacimiento?</option>
@@ -38,10 +39,10 @@
         <option value="¿Cuál es tu canción favorita?">¿Cuál es tu canción favorita?</option>
       </select>
       <input type="text" name="respuesta" placeholder="Respuesta para recuperar contraseña" required>
-      <select name="userType" class="cbTipoUsuario" id="tipoUsuario">
+      <select name="idrol" class="cbTipoUsuario" id="typeUser">
         <option value="" disabled selected hidden>Selecciona el tipo de usuario (admin/user)</option>
-        <option value="admin">admin</option>
-        <option value="user">user</option>
+        <option value = 2>admin</option>
+        <option value = 1>user</option>
       </select>
       <input type="submit" value="Guardar">
     </form>

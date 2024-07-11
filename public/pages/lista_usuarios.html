@@ -1,3 +1,4 @@
+<!--/public/pages/lista_usuarios.html-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -38,7 +39,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" href="../pages/registro_usuario.html" id="registerLink">Registrarse</a>
                         </li>
-                        <li class="nav-item dropdown" id="adminDropdown">
+                        <li class="nav-item dropdown" id="admin-item">
                             <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Administrar
                             </a>
@@ -49,7 +50,7 @@
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white" href="#" id="closeLink">Cerrar Sesion</a>
+                            <a class="nav-link text-white" href="#" id="logout-item">Cerrar Sesion</a>
                         </li>
                     </ul>
                 </div>
@@ -62,10 +63,7 @@
             <h2>Información de los Usuarios</h2>
           </div>
           <div id="filaEntradaDatos">
-            <!-- <input type="text" id="nombreEntrada">
-              <input type="text" id="apellidoEntrada"> -->
-            <!-- Agrega los demás inputs para los datos de los usuarios -->
-            <button class="btn-agregar-usuario" onclick="agregarUsuario()"><i class="fas fa-plus"></i> Agregar Usuario</button>
+            <button class="btn-agregar-usuario" id="agregarUsuarioBtn"><i class="fas fa-plus"></i> Agregar Usuario</button>
           </div>
         </section>
         <!-- Tabla de visualización de datos -->
@@ -77,7 +75,6 @@
                         <th>Apellido</th>
                         <th>Fecha de Nacimiento</th>
                         <th>Email</th>
-                        <th>Contraseña</th>
                         <th>Pregunta de Seguridad</th>
                         <th>Respuesta</th>
                         <th>Tipo de Usuario</th>

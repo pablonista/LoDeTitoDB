@@ -1,45 +1,40 @@
+// public/js/editarUsuario.js
+// Clase Usuario para representar los datos del usuario
 class Usuario {
-    constructor(nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, tipoDeUsuario, isLogueado) {
+    constructor(nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) {
         this.nombre = nombre;
         this.apellido = apellido;
-        this.fechaNacimiento = fechaNacimiento;
+        this.fechanacimiento = fechanacimiento; // Formato dd/mm/yyyy
         this.email = email;
-        this.contrasena = contrasena;
+        this.contrasena = contrasena; // Contraseña sin encriptar en el cliente
         this.pregunta = pregunta;
         this.respuesta = respuesta;
-        this.tipoDeUsuario = tipoDeUsuario;
-        this.isLogueado = isLogueado;
+        this.idrol = idrol;
+        this.islogueado = islogueado;
     }
 }
 
-let usuariosRegistrados = [];
-let usuarioEncontrado = new Usuario();
-let usuarioAEditar = null;
-
 // Función para manejar el evento de envío del formulario
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
 
     let nombre = document.querySelector('input[name="nombre"]').value;
     let apellido = document.querySelector('input[name="apellido"]').value;
-    let fechaNacimiento = document.querySelector('input[name="fecha_nacimiento"]').value;
+    let fechanacimiento = document.querySelector('input[name="fecha_nacimiento"]').value;
     let email = document.querySelector('input[name="email"]').value;
-    let contrasena = document.querySelector('input[name="contrasena"]').value;
-    let confirmarContrasena = document.querySelector('input[name="confirmar_contrasena"]').value;
+    let contrasena = document.querySelector('input[name="contrasena"]').value; // Contraseña en texto plano
+    let confirmarContrasena = document.querySelector('input[name="confirmar_contrasena"]').value; // Contraseña en texto plano
     let pregunta = document.querySelector('select[name="pregunta"]').value;
     let respuesta = document.querySelector('input[name="respuesta"]').value;
-    let tipoUsuario = document.querySelector('select[name="userType"]').value;
+    let idrol = document.querySelector('select[name="idrol"]').value;
 
+    // Validaciones de los campos del formulario
     if (!validarNombreApellido(nombre, apellido)) {
         alert("Por favor, ingrese un nombre y un apellido válidos.");
         return false;
     }
-    if (!validarFecha(fechaNacimiento)) {
+    if (!validarFecha(fechanacimiento)) {
         alert("Por favor, ingrese una fecha de nacimiento válida en formato dd/mm/yyyy.");
-        return false;
-    }
-    if (!validarCorreo(email)) {
-        alert("Por favor, ingrese un correo electrónico válido.");
         return false;
     }
     if (!validarContrasena(contrasena)) {
@@ -54,149 +49,94 @@ function handleFormSubmit(event) {
         alert("Por favor, seleccione una pregunta y una respuesta válidas.");
         return false;
     }
-    if (!validarTipoUsuario(tipoUsuario)) {
+    if (!validarTipoUsuario(idrol)) {
         alert("Por favor, seleccione el tipo de Usuario.");
         return false;
     }
 
-    // Encontrar el índice del usuario en el array de usuariosRegistrados
-    const index = usuariosRegistrados.findIndex(usuario => usuario.email === email);
-
-    // Si no se encuentra el usuario, salir de la función
-    if (index === -1) {
-        console.log("Usuario no encontrado en el array de usuariosRegistrados");
-        return false;
-    }
-
-    // Actualizar los datos del usuario
-    usuariosRegistrados[index] = {
+    // Crear objeto de usuario con los datos actualizados
+    const usuarioActualizado = {
         nombre,
         apellido,
-        fechaNacimiento,
+        fechanacimiento: convertirFechaFormatoISO(fechanacimiento), // Convertir a formato ISO (yyyy-mm-dd)
         email,
-        contrasena,
+        contrasena, // Contraseña sin encriptar en el cliente
         pregunta,
         respuesta,
-        tipoDeUsuario: tipoUsuario
+        idrol
     };
 
-    // Guardar los cambios en el almacenamiento local
-    localStorage.setItem('usuariosRegistrados', JSON.stringify(usuariosRegistrados));
+    try {
+        // Enviar la solicitud PUT al servidor para actualizar el usuario
+        const response = await fetch(`/usuarios/${usuarioActualizado}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(usuarioActualizado)
+        });
 
-    // Mostrar mensaje de éxito
-    alert("¡Modificación exitosa!");
-
-    // Redireccionar a la lista de usuarios
-    window.location.href = "../pages/lista_usuarios.html";
-
-    return false;
+        if (response.ok) {
+            alert("¡Modificación exitosa!");
+            window.location.href = "./lista_usuarios.html";
+        } else {
+            const errorData = await response.json();
+            alert(`Error al actualizar el usuario: ${errorData.message}`);
+        }
+    } catch (error) {
+        console.error('Error al actualizar el usuario:', error);
+        alert('Error al actualizar el usuario');
+    }
 }
 
-// Función para cargar los datos en el formulario
+// Función para cargar los datos del usuario en el formulario para editar
 function cargarDatosEnFormulario(usuario) {
     if (usuario) {
         document.querySelector('input[name="nombre"]').value = usuario.nombre;
         document.querySelector('input[name="apellido"]').value = usuario.apellido;
-        document.querySelector('input[name="fecha_nacimiento"]').value = usuario.fechaNacimiento;
+        document.querySelector('input[name="fecha_nacimiento"]').value = formatearFecha(usuario.fechanacimiento); // Mostrar en formato dd/mm/yyyy
         document.querySelector('input[name="email"]').value = usuario.email;
-        document.querySelector('input[name="contrasena"]').value = usuario.contrasena;
-        document.querySelector('input[name="confirmar_contrasena"]').value = usuario.contrasena;
+        document.querySelector('input[name="contrasena"]').value = ''; // Limpiar campo de contraseña por seguridad
+        document.querySelector('input[name="confirmar_contrasena"]').value = ''; // Limpiar campo de confirmar contraseña por seguridad
         document.querySelector('select[name="pregunta"]').value = usuario.pregunta;
         document.querySelector('input[name="respuesta"]').value = usuario.respuesta;
-        document.querySelector('select[name="userType"]').value = usuario.tipoDeUsuario;
+        document.querySelector('select[name="idrol"]').value = String(usuario.idrol);
+
     } else {
         console.log("Usuario a editar no encontrado");
     }
 }
 
-// Función para limpiar los elementos del formulario
-function limpiarDatosEnFormulario() {
-    /* document.querySelector('input[name="nombre"]').value = "";
-    document.querySelector('input[name="apellido"]').value = "";
-    document.querySelector('input[name="fecha_nacimiento"]').value = "";
-    document.querySelector('input[name="email"]').value = "";
-    document.querySelector('input[name="contrasena"]').value = "";
-    document.querySelector('input[name="confirmar_contrasena"]').value = "";
-    document.querySelector('select[name="pregunta"]').value = "";
-    document.querySelector('input[name="respuesta"]').value = "";
-    document.querySelector('select[name="userType"]').value = ""; */
-    const form = document.querySelector('form');
-
-    // Limpiar todos los inputs de tipo texto, email, fecha, y contraseña
-    form.querySelectorAll('input[type="text"], input[type="email"], input[type="date"], input[type="password"]').forEach(input => {
-        input.value = '';
-    });
-
-    // Limpiar todos los selects
-    form.querySelectorAll('select').forEach(select => {
-        select.value = '';
-    });
-    location.reload();
+// Función para convertir fecha de dd/mm/yyyy a yyyy-mm-dd
+// Función para formatear la fecha de nacimiento a dd/mm/yyyy
+function formatearFecha(fecha) {
+    if (!fecha) return '';
+    const date = new Date(fecha);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses empiezan desde 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
-// Función para editar un usuario por email
-function editarUsuario(email) {
-    usuarioAEditar = usuariosRegistrados.find(usuario => usuario.email === email);
-    if (usuarioAEditar) {
-        localStorage.setItem('usuarioAEditar', JSON.stringify(usuarioAEditar));
-        cargarDatosEnFormulario(usuarioAEditar);
-    } else {
-        console.log("Usuario no encontrado");
+// Función para convertir fecha de yyyy-mm-dd a dd/mm/yyyy
+function convertirFechaParaMostrar(fecha) {
+    const partes = fecha.split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`; // dd/mm/yyyy
     }
+    return fecha; // En caso de formato incorrecto, devolver la misma fecha
 }
 
-// Recuperar datos del almacenamiento local al cargar la página
-window.addEventListener('DOMContentLoaded', function() {
-    const usuarioEncontradoString = localStorage.getItem('usuarioEncontrado');
-    if (usuarioEncontradoString) {
-        usuarioEncontrado = JSON.parse(usuarioEncontradoString);
-        tipoUsuario = usuarioEncontrado.tipoDeUsuario;
-    }
-
-    if (!usuarioEncontrado || !usuarioEncontrado.isLogueado || usuarioEncontrado.tipoDeUsuario !== "admin") {
-        sesionIniciada();
-    }
-
-    let usuariosRegistradosString = localStorage.getItem('usuariosRegistrados');
-    if (usuariosRegistradosString) {
-        usuariosRegistrados = JSON.parse(usuariosRegistradosString);
-    }
-
-    let usuarioAEditarString = localStorage.getItem('usuarioAEditar');
-    if (usuarioAEditarString) {
-        usuarioAEditar = JSON.parse(usuarioAEditarString);
-        cargarDatosEnFormulario(usuarioAEditar);
-    }
-    
-    // Añadir el evento al formulario*/
-    document.querySelector('form').addEventListener('submit', handleFormSubmit);
-});
-
-// Array para almacenar usuarios registrados
-window.addEventListener('beforeunload', function() {
-    if (usuarioEncontrado.isLogueado && usuarioEncontrado.tipoDeUsuario==="admin") {
-        localStorage.setItem('usuariosRegistrados', JSON.stringify(usuariosRegistrados));
-    }
-});
-
-// Función para validar el nombre y apellido
+// Funciones de validación del formulario
 function validarNombreApellido(nombre, apellido) {
     return nombre.trim() !== '' && apellido.trim() !== '';
 }
 
-// Función para validar el formato de fecha (dd/mm/yyyy)
 function validarFecha(fecha) {
     const regex = /^\d{2}\/\d{2}\/\d{4}$/;
     return regex.test(fecha);
 }
 
-// Función para validar el formato de correo electrónico
-function validarCorreo(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-}
-
-// Función para validar la contraseña
 function validarContrasena(contrasena) {
     if (contrasena.length < 6 || contrasena.length > 12) {
         return false;
@@ -213,35 +153,24 @@ function validarContrasena(contrasena) {
     return true;
 }
 
-// Función para validar pregunta y respuesta
 function validarPreguntaRespuesta(pregunta, respuesta) {
     return pregunta.trim() !== '' && respuesta.trim() !== '';
 }
 
-// Función para validar tipo de usuario
-function validarTipoUsuario(tipoUsuario) {
-    return tipoUsuario.trim() !== '';
+function validarTipoUsuario(idrol) {
+    return idrol.trim() !== '';
 }
 
-// Función para validar que el usuario sea único
-function validarUsuarioUnico(email, usuariosRegistrados) {
-    return usuariosRegistrados.some(usuario => usuario.email === email);
-}
+// Cargar datos del usuario al cargar la página
+window.addEventListener('DOMContentLoaded', function() {
+    let usuarioAEditarString = localStorage.getItem('usuarioAEditar');
+    if (usuarioAEditarString) {
+        let usuarioAEditar = JSON.parse(usuarioAEditarString);
+        cargarDatosEnFormulario(usuarioAEditar);
+    } else {
+        console.log("No se encontró el usuario a editar en localStorage");
+    }
 
-function sesionIniciada() {
-    cambiarFondo();
-    alert("No acceso sin autorización. Se redireccionará al Inicio.");
-    limpiarDatosEnFormulario();
-    //event.target.reset();
-    window.location.href = "../index.html";
-}
-
-function cambiarFondo(){
-    var elemento = document.getElementById("miDiv");
-    
-    // Cambia el fondo usando CSS a través de JavaScript
-    elemento.style.backgroundImage = "url('../assets/imagenes/Noaccess01.jpeg')";
-    elemento.style.backgroundSize = "cover"; // Esto asegura que la imagen cubra todo el div
-    elemento.style.backgroundPosition = "center"; // Centra la imagen en el div
-    elemento.style.height = "100vh"; // Ajusta la altura del div si es necesario
-}
+    // Agregar evento al formulario
+    document.querySelector('form').addEventListener('submit', handleFormSubmit);
+});

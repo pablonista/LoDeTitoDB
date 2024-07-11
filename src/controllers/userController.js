@@ -2,6 +2,9 @@
 import db from '../db/db.js';
 import pool from '../db/db.js';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import config from '../config/config.js';
+
 
 const formatDate = (dateString) => {
     if (!dateString) return null; // Maneja el caso cuando la fecha es null o undefined
@@ -43,24 +46,34 @@ const getUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
-    const sql = 'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-
-
+    const connection = await pool.getConnection();
     try {
-        const [result] = await db.query(sql, [nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado]);
-        const newUser = { id: result.insertId, nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado };
-        res.json({ message: 'User created', User: newUser });
+        const { nombre, apellido, fechaNacimiento, email, contrasena, pregunta, respuesta, idrol } = req.body;
+        const formattedDate = formatDate(fechaNacimiento);
+        const hashedPassword = bcrypt.hashSync(contrasena, 8);
+        const islogueado = 0; // O cualquier otro valor por defecto que sea adecuado para tu lógica
+
+        const [result] = await connection.query(
+            'INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [nombre, apellido, formattedDate, email, hashedPassword, pregunta, respuesta, idrol, islogueado]
+        );
+
+        const token = jwt.sign({ id: result.insertId }, config.secretKey, { expiresIn: config.tokenExpiresIn });
+
+        res.status(201).send({ auth: true, token });
     } catch (error) {
-        console.error('Error al crear el usuario:', error);
-        res.status(500).send('Error interno del servidor');
+        console.error('Error during registration:', error);
+        res.status(500).send({ message: 'There was a problem registering the user.', error });
+    } finally {
+        connection.release();
     }
 };
 
 const updateUser = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado } = req.body;
+    const { nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol } = req.body;
     let hashedPassword = bcrypt.hashSync(contrasena, 8);
+    let islogueado = 0;
 
     // Formatea la fecha de nacimiento antes de actualizarla en la base de datos
     const formattedDate = formatDate(fechanacimiento);
