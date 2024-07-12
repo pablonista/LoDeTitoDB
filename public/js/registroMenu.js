@@ -7,7 +7,7 @@ class Menu {
         this.precio = precio;
         this.imagen = imagen;
         this.descripcion = descripcion;
-        this.isDisponible = isDisponible;
+        this.isdisponible = isdisponible;
     }
 }
 
@@ -18,7 +18,7 @@ async function handleFormSubmit(event) {
     let precio = document.querySelector('input[name="precio"]').value;
     let imagenMenu = document.querySelector('input[name="imagenMenu"]').files[0];
     let descripcion = document.querySelector('textarea[name="comentarios"]').value;
-
+    let isdisponible = 1;
     // Validar campos del formulario
     if (!validarNombre(nombre)) {
         alert("Por favor, ingrese un nombre para el menú.");
@@ -45,7 +45,7 @@ async function handleFormSubmit(event) {
             precio,
             imagen: imagenBase64,
             descripcion,
-            isDisponible: 1 // Cambiado a isDisponible en vez de isdisponible
+            isdisponible: isdisponible === 1 // Cambiado a isDisponible en vez de isdisponible
         };
 
         try {
@@ -80,35 +80,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Verificar token y usuario al cargar la página
     const token = localStorage.getItem("token");
     const userString = localStorage.getItem("user");
-
+ 
     if (!token || !userString) {
         // Manejar caso de usuario no autenticado
         cambiarFondo();
         alert('No tiene acceso a la página');
         window.location.href = "/";
         return;
-    }
-
-    try {
-        // Validar token con el backend
-        const response = await fetch('/usuarios/me', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Usuario no encontrado');
-        }
-
-        // Cargar menús o realizar otras acciones necesarias
-        mostrarMenues();
-
-    } catch (error) {
-        console.error('Error al obtener el usuario:', error);
-        alert('Ocurrió un error al cargar la página. Por favor, intente nuevamente.');
-        window.location.href = "/";
     }
 });
 

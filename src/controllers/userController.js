@@ -45,6 +45,26 @@ const getUserById = async (req, res) => {
     }
 };
 
+const getUserByEmail = async (req, res) => {
+    const email = req.params.email;
+    const sql = 'SELECT usuarios.idusuario, usuarios.nombre, usuarios.apellido, usuarios.fechanacimiento, usuarios.email, usuarios.contrasena, usuarios.pregunta, usuarios.respuesta, roles.nombre AS rol, usuarios.islogueado'
+        +' FROM usuarios'
+        +' INNER JOIN roles ON usuarios.idrol = roles.idrol'+ ' WHERE email = ?';
+
+    try {
+        const [rows] = await pool.query(sql, [email]);
+
+        if (rows.length > 0) {
+            res.json(rows[0]);
+        } else {
+            res.status(404).send('Usuario no encontrado');
+        }
+    } catch (error) {
+        console.error('Error al obtener el usuario por Email:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+};
+
 const createUser = async (req, res) => {
     const connection = await pool.getConnection();
     try {
@@ -127,4 +147,4 @@ const deleteUser = async (req, res) => {
 
 
 
-export {getAllUsers,getUserById,createUser,updateUser,deleteUser};
+export {getAllUsers,getUserById,getUserByEmail,createUser,updateUser,deleteUser};
