@@ -92,7 +92,7 @@ pool.getConnection()
                 await connection.query(`
                     INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, ['admin', 'LoDeTito', '1977-09-29', 'admin@lodetito.com.ar', 'Admin#1234', '¿En qué ciudad naciste?', 'Tucumán', 2, 0]);
+                `, ['admin', 'LoDeTito', '1977-09-29', 'admin@lodetito.com.ar', '$08$kLGOCMbteYF9wS.RvSbTtOIZ04un8rES/AFVszLXTDsl1wl0iTwK2', '¿En qué ciudad naciste?', 'Tucumán', 2, 0]);
                 console.log('Usuario administrador insertado');
             } else {
                 console.log('Usuario administrador ya existe, omitiendo inserción');
