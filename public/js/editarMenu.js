@@ -1,23 +1,25 @@
-// public/pages/registroMenu.js
-
+//public/js/editarMenu.js
 class Menu {
-    constructor(id, nombre, precio, imagen, descripcion, isDisponible) {
-        this.id = id;
+    constructor(idmenu, nombre, precio, imagen, descripcion, isdisponible) {
+        this.idmenu = idmenu;
         this.nombre = nombre;
         this.precio = precio;
         this.imagen = imagen;
         this.descripcion = descripcion;
-        this.isDisponible = isDisponible;
+        this.isdisponible = isdisponible;
     }
 }
 
 async function handleFormSubmit(event) {
     event.preventDefault();
     // Obtener datos del formulario
+
+    let id = document.querySelector('input[name="id"]').value;
     let nombre = document.querySelector('input[name="nombre"]').value;
     let precio = document.querySelector('input[name="precio"]').value;
     let imagenMenu = document.querySelector('input[name="imagenMenu"]').files[0];
     let descripcion = document.querySelector('textarea[name="comentarios"]').value;
+    let isDisponible = document.querySelector('select[name="disponibilidad"]').value;
 
     // Validar campos del formulario
     if (!validarNombre(nombre)) {
@@ -28,58 +30,66 @@ async function handleFormSubmit(event) {
         alert("Por favor, ingrese la descripción del menú.");
         return false;
     }
+    const menu = JSON.parse(localStorage.getItem('menuAEditar'));
+    let editadoMenu = {
+        idmenu: menu.idmenu,
+        nombre,
+        precio,
+        descripcion,
+        isdisponible: isDisponible === '1' // Convertir a booleano
+    };
+    //console.log(editadoMenu);
+    if (imagenMenu) {
+        // Convertir imagen a base64 para enviarla
+        let reader = new FileReader();
+        reader.onload = async function() {
+            let imagenBase64 = reader.result;
+            editadoMenu.imagen = imagenBase64;
 
-    // Validar que el menú sea único
-    if (await validarMenuUnico(nombre)) {
-        alert("El menú ya está registrado.");
-        return false;
+            await enviarDatos(editadoMenu);
+        };
+        reader.readAsDataURL(imagenMenu);
+    } else {
+        // Si no se selecciona nueva imagen, enviar el menú sin la propiedad de imagen
+        await enviarDatos(editadoMenu);
     }
 
-    // Convertir imagen a base64 para enviarla
-    let reader = new FileReader();
-    reader.onload = async function() {
-        let imagenBase64 = reader.result;
-
-        let nuevoMenu = {
-            nombre,
-            precio,
-            imagen: imagenBase64,
-            descripcion,
-            isDisponible: 1 // Cambiado a isDisponible en vez de isdisponible
-        };
-
-        try {
-            // Enviar datos del nuevo menú al backend
-            const response = await fetch('/menues', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(nuevoMenu)
-            });
-
-            if (response.ok) {
-                event.target.reset();
-                alert("¡Menú registrado exitosamente!");
-                window.location.href = "../pages/lista_menues.html";
-            } else {
-                throw new Error('Error al registrar el menú');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Ocurrió un error al registrar el menú. Por favor, intente nuevamente.');
-        }
-    };
-    reader.readAsDataURL(imagenMenu);
-
     return false;
+}
+
+async function enviarDatos(datosMenu) {
+    const token = localStorage.getItem("token");
+    const idMenu = parseInt(datosMenu.idmenu);
+    
+    try {
+        const response = await fetch(`/menues/${idMenu}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(datosMenu)
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al editar el menú');
+        }
+
+        const data = await response.json();
+        console.log('Menú actualizado:', data.menu);
+        window.location.href = "./lista_menues.html";
+
+    } catch (error) {
+        console.error('Error al editar el menú:', error.message);
+        // Manejar el error según sea necesario en el cliente
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Verificar token y usuario al cargar la página
     const token = localStorage.getItem("token");
     const userString = localStorage.getItem("user");
+
 
     if (!token || !userString) {
         // Manejar caso de usuario no autenticado
@@ -89,26 +99,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    try {
-        // Validar token con el backend
-        const response = await fetch('/usuarios/me', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Usuario no encontrado');
-        }
-
-        // Cargar menús o realizar otras acciones necesarias
-        mostrarMenues();
-
-    } catch (error) {
-        console.error('Error al obtener el usuario:', error);
-        alert('Ocurrió un error al cargar la página. Por favor, intente nuevamente.');
-        window.location.href = "/";
+    const menu = JSON.parse(localStorage.getItem('menuAEditar'));
+    if (menu) {
+        document.querySelector('input[name="id"]').value = menu.id;
+        document.querySelector('input[name="nombre"]').value = menu.nombre;
+        document.querySelector('input[name="precio"]').value = menu.precio;
+        document.querySelector('textarea[name="comentarios"]').value = menu.descripcion;
+        document.querySelector('select[name="disponibilidad"]').value = menu.isDisponible ? '1' : '0';
     }
 });
 

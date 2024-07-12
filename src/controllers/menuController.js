@@ -46,22 +46,41 @@ const createMenu = async (req, res) => {
     }
 };
 
-const updateMenu = async(req, res) => {
+const updateMenu = async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { nombre, precio, imagen, descripcion, isdisponible } = req.body;
-    const sql = `UPDATE menues SET nombre = ?, precio = ?, imagen = ?, descripcion = ?, isdisponible = ? WHERE idmenu = ?`
+
+    // Validación de datos
+    if (!nombre || !precio || !descripcion || typeof isdisponible === 'undefined') {
+        return res.status(400).send('Todos los campos requeridos deben estar presentes');
+    }
+
+    if (isNaN(id)) {
+        return res.status(400).send('ID no válido');
+    }
+
+    const precioRegex = /^\$?\d{1,3}(,\d{3})*(\.\d{2})?$/;
+    if (!precioRegex.test(precio)) {
+        return res.status(400).send('Formato de precio no válido');
+    }
+
+    const precioDecimal = parseFloat(precio.replace(/[\$,]/g, ''));
+    const disponible = Boolean(Number(isdisponible));
+
+    const sql = `UPDATE menues SET nombre = ?, precio = ?, imagen = ?, descripcion = ?, isdisponible = ? WHERE idmenu = ?`;
+
     try {
-        const [result] = await db.query(sql, [nombre, precio, imagen, descripcion, isdisponible, id]);
+        const [result] = await db.query(sql, [nombre, precioDecimal, imagen, descripcion, disponible, id]);
 
         if (result.affectedRows === 0) {
-            res.status(404).send('Menú no encontrado');
+            return res.status(404).send('Menú no encontrado');
         } else {
-            const updatedMenu = { id, nombre, precio, imagen, descripcion, isdisponible };
-            res.json({ message: 'Menu updated', menu: updatedMenu });
+            const updatedMenu = { id: id, nombre, precio: precioDecimal, imagen, descripcion, isdisponible: disponible };
+            return res.json({ message: 'Menú actualizado', menu: updatedMenu });
         }
     } catch (error) {
         console.error('Error al actualizar el menú:', error);
-        res.status(500).send('Error interno del servidor');
+        return res.status(500).send('Ocurrió un error al editar el menú. Por favor, intente nuevamente.');
     }
 };
 

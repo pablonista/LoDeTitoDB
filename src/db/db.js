@@ -32,7 +32,7 @@ pool.getConnection()
                 CREATE TABLE IF NOT EXISTS menues (
                     idmenu INT AUTO_INCREMENT PRIMARY KEY,
                     nombre VARCHAR(255) NOT NULL,
-                    precio DOUBLE NOT NULL,
+                    precio DECIMAL (10,2) NOT NULL,
                     imagen LONGBLOB NOT NULL,
                     descripcion VARCHAR(255) NOT NULL,
                     isdisponible TINYINT NOT NULL

@@ -1,7 +1,8 @@
 // public/js/editarUsuario.js
 // Clase Usuario para representar los datos del usuario
 class Usuario {
-    constructor(nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) {
+    constructor(id, nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado) {
+        this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
         this.fechanacimiento = fechanacimiento; // Formato dd/mm/yyyy
@@ -17,7 +18,7 @@ class Usuario {
 // Función para manejar el evento de envío del formulario
 async function handleFormSubmit(event) {
     event.preventDefault();
-
+    
     let nombre = document.querySelector('input[name="nombre"]').value;
     let apellido = document.querySelector('input[name="apellido"]').value;
     let fechanacimiento = document.querySelector('input[name="fecha_nacimiento"]').value;
@@ -55,20 +56,23 @@ async function handleFormSubmit(event) {
     }
 
     // Crear objeto de usuario con los datos actualizados
+    let usuarioAEditarString = localStorage.getItem('usuarioAEditar');
+    let usuarioAEditar = JSON.parse(usuarioAEditarString);
     const usuarioActualizado = {
+        id:usuarioAEditar.idusuario,
         nombre,
         apellido,
-        fechanacimiento: convertirFechaFormatoISO(fechanacimiento), // Convertir a formato ISO (yyyy-mm-dd)
+        fechanacimiento: formatearFecha(fechanacimiento), // Convertir a formato ISO (yyyy-mm-dd)
         email,
         contrasena, // Contraseña sin encriptar en el cliente
         pregunta,
         respuesta,
         idrol
     };
-
+    console.log(usuarioActualizado);
     try {
         // Enviar la solicitud PUT al servidor para actualizar el usuario
-        const response = await fetch(`/usuarios/${usuarioActualizado}`, {
+        const response = await fetch(`/usuarios/${usuarioActualizado.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

@@ -2,17 +2,17 @@
 //src/routes/menuRoutes.js
 import express from 'express';
 import {getAllMenues,getMenuById,createMenu,updateMenu,deleteMenu} from '../controllers/menuController.js';
+import authenticateToken from '../middlewares/authMiddleware.js';
 import upload from '../upload.js'; // Importar la configuración de multer
 
 //creamos una instancia del router de Express
 const router = express.Router();
 
-
 router.get('/', getAllMenues);
 router.get('/:id', getMenuById);
-router.post('/', createMenu);
-router.put('/:id', updateMenu);
-router.delete('/:id', deleteMenu);
+router.post('/', authenticateToken, createMenu);
+router.put('/:id', authenticateToken, updateMenu);
+router.delete('/:id', authenticateToken, deleteMenu);
 
 // Nueva ruta para la subida de archivos
 router.post('/upload', upload.single('file'), (req, res) => {

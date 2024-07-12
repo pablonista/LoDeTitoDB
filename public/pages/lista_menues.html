@@ -1,3 +1,4 @@
+<!--/public/pages/lista_menues.html-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -38,7 +39,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" href="../pages/registro_usuario.html" id="registerLink">Registrarse</a>
                         </li>
-                        <li class="nav-item dropdown" id="adminDropdown">
+                        <li class="nav-item dropdown" id="admin-item">
                             <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Administrar
                             </a>
@@ -63,7 +64,7 @@
             </div>
             <div id="filaEntradaDatos">
                 <!-- Agrega los demás inputs para los datos de los menues -->
-                <button class="btn-agregar-menu" onclick="agregarMenu()"><i class="fas fa-plus"></i> Agregar Menú</button>
+                <button class="btn-agregar-menu" id="agregarMenuBtn"><i class="fas fa-plus"></i> Agregar Menú</button>
             </div>
         </section>
         <section class="tabla-contenedor">
