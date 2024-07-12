@@ -27,7 +27,7 @@ pool.getConnection()
             await connection.changeUser({ database: 'lodetito' });
             console.log('Switched to database lodetito');
 
-            // Crear la tabla movies si no existe
+            // Crear la tabla menues si no existe
             await connection.query(`
                 CREATE TABLE IF NOT EXISTS menues (
                     idmenu INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,10 +50,10 @@ pool.getConnection()
             console.log('Table roles ensured');
 
             // Verificar si la tabla roles está vacía
-            const [rows] = await connection.query(`SELECT COUNT(*) AS count FROM roles`);
-            const { count } = rows[0];
+            const [rolesRows] = await connection.query(`SELECT COUNT(*) AS count FROM roles`);
+            const { count: rolesCount } = rolesRows[0];
 
-            if (count === 0) {
+            if (rolesCount === 0) {
                 // Insertar valores por defecto en la tabla roles si está vacía
                 await connection.query(`
                     INSERT INTO roles (nombre) VALUES 
@@ -83,23 +83,20 @@ pool.getConnection()
             `);
             console.log('Table usuarios ensured');
 
-            // Crear la tabla reservas si no existe
-            await connection.query(`
-                CREATE TABLE IF NOT EXISTS reservas (
-                    idreserva INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    fullname VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) NOT NULL,
-                    phone VARCHAR(255) NOT NULL,
-                    mesa INT NOT NULL,
-                    idmenu INT NOT NULL,
-                    date DATE NOT NULL,
-                    horario VARCHAR(255) NOT NULL,
-                    idusuario INT NOT NULL,
-                    FOREIGN KEY (idusuario) REFERENCES usuarios (idusuario),
-                    FOREIGN KEY (idmenu) REFERENCES menues (idmenu)
-                )
-            `);
-            console.log('Table reservas ensured');
+            // Verificar si el usuario administrador ya existe
+            const [adminRows] = await connection.query(`SELECT COUNT(*) AS count FROM usuarios WHERE email = ?`, ['admin@lodetito.com.ar']);
+            const { count: adminCount } = adminRows[0];
+
+            if (adminCount === 0) {
+                // Insertar el usuario administrador si no existe
+                await connection.query(`
+                    INSERT INTO usuarios (nombre, apellido, fechanacimiento, email, contrasena, pregunta, respuesta, idrol, islogueado)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, ['admin', 'LoDeTito', '1977-09-29', 'admin@lodetito.com.ar', 'Admin#1234', '¿En qué ciudad naciste?', 'Tucumán', 2, 0]);
+                console.log('Usuario administrador insertado');
+            } else {
+                console.log('Usuario administrador ya existe, omitiendo inserción');
+            }
 
         } catch (error) {
             console.error('Error during database setup:', error);
@@ -112,6 +109,3 @@ pool.getConnection()
     });
 
 export default pool;
-
-
-
