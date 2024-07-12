@@ -20,12 +20,12 @@ pool.getConnection()
 
         try {
             // Crear la base de datos si no existe
-            await connection.query(`CREATE DATABASE IF NOT EXISTS lodetito`);
+            await connection.query(`CREATE DATABASE IF NOT EXISTS bg03omiv8u936zu7jfdx`);
             console.log('Database ensured');
 
             // Cambiar a la base de datos lodetito
-            await connection.changeUser({ database: 'lodetito' });
-            console.log('Switched to database lodetito');
+            await connection.changeUser({ database: 'bg03omiv8u936zu7jfdx' });
+            console.log('Switched to database bg03omiv8u936zu7jfdx');
 
             // Crear la tabla menues si no existe
             await connection.query(`
