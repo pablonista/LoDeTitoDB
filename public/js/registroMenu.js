@@ -126,9 +126,13 @@ function validateCurrency() {
     var input = document.getElementById("currencyInput").value;
     var message = document.getElementById("currencyMessage");
 
-    var currencyRegex = /^\$?\d{1,3}(,\d{3})*(\.\d{2})?$/;
+    // Regex actualizado para permitir números enteros o decimales con punto como separador decimal, sin símbolo $
+    var currencyRegex = /^(?!.*\$)\d{1,3}(,\d{3})*(\.\d{2})?$/;
 
-    if (currencyRegex.test(input) && parseFloat(input.replace(/[$,]/g, '')) > 0) {
+    // Eliminar las comas antes de verificar el valor numérico
+    var numericValue = parseFloat(input.replace(/,/g, ''));
+
+    if (currencyRegex.test(input) && numericValue > 0) {
         message.style.color = "green";
         message.textContent = "El formato de moneda es válido y positivo.";
     } else {

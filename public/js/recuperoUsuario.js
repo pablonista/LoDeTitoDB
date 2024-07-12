@@ -58,16 +58,28 @@ async function handleFormSubmit(event) {
             alert("Respuesta incorrecta.");
             return false;
         }
-
+        // Asignación del valor numérico a idrol según el rol del usuario en una sola línea
+        const idrol = usuario.rol === 'admin' ? 2 : 1;
+        // Construir objeto con todos los datos actualizados del usuario
+        const updateData = {
+            idusuario: usuario.idusuario,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            fechanacimiento: usuario.fechanacimiento,
+            email: usuario.email,
+            contrasena: contrasena, // Nueva contraseña
+            pregunta: pregunta,
+            respuesta: respuesta,
+            idrol: idrol, // Asegúrate de incluir idrol
+            islogueado: usuario.islogueado
+        };
+        console.log(updateData);
         const updateResponse = await fetch(`/usuarios/${usuario.idusuario}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                ...usuario,
-                contrasena // Enviar la contraseña en texto plano
-            })
+            body: JSON.stringify(updateData)
         });
 
         if (updateResponse.ok) {
