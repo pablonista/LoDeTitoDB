@@ -62,14 +62,14 @@ async function handleFormSubmit(event) {
         id:usuarioAEditar.idusuario,
         nombre,
         apellido,
-        fechanacimiento: formatearFecha(fechanacimiento), // Convertir a formato ISO (yyyy-mm-dd)
+        fechanacimiento,
         email,
         contrasena, // Contraseña sin encriptar en el cliente
         pregunta,
         respuesta,
         idrol
     };
-    console.log(usuarioActualizado);
+    console.log(usuarioActualizado.fechanacimiento);
     try {
         // Enviar la solicitud PUT al servidor para actualizar el usuario
         const response = await fetch(`/usuarios/${usuarioActualizado.id}`, {
