@@ -123,14 +123,14 @@ async function validarMenuUnico(nombre) {
     }
 }
 function validateCurrency() {
-    var input = document.getElementById("currencyInput").value;
+    var input = document.getElementById("currencyInput").value.trim(); // Obtener el valor y eliminar espacios en blanco al inicio y al final
     var message = document.getElementById("currencyMessage");
 
-    // Regex actualizado para permitir números enteros o decimales con punto como separador decimal, sin símbolo $
-    var currencyRegex = /^(?!.*\$)\d{1,3}(,\d{3})*(\.\d{2})?$/;
+    // Regex actualizado para permitir números positivos con hasta 12 dígitos enteros y dos decimales opcionales
+    var currencyRegex = /^\d{1,12}(\.\d{1,2})?$/;
 
-    // Eliminar las comas antes de verificar el valor numérico
-    var numericValue = parseFloat(input.replace(/,/g, ''));
+    // Verificar si el número es válido y convertirlo a número
+    var numericValue = parseFloat(input);
 
     if (currencyRegex.test(input) && numericValue > 0) {
         message.style.color = "green";
