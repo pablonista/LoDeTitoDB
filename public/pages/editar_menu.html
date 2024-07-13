@@ -1,4 +1,3 @@
-<!--/public/pages/editar_menu.html-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -19,12 +18,12 @@
     <form action="#" method="POST" onsubmit="return handleFormSubmit(event);">
       <input type="hidden" name="id">
       <input type="text" name="nombre" placeholder="Nombre" required>
-      <input type="text" name="precio" id="currencyInput" placeholder="Precio" oninput="validateCurrency()" required>
+      <input type="text" name="precio" id="currencyInput" placeholder="Precio" oninput="validateCurrency(this.value)" required>
       <p id="currencyMessage"></p>
       <select name="disponibilidad" class="cbDisponibilidad" id="isdisponible">
         <option value="" disabled selected hidden>Selecciona Disponibilidad (No/Sí)</option>
-        <option value = "0">No Disponible</option>
-        <option value = "1">Disponible</option>
+        <option value="0">No Disponible</option>
+        <option value="1">Disponible</option>
       </select>
       <input type="file" name="imagenMenu" id="imagenMenu" placeholder="Imagen del Menú">
       <div class="imagenCargadaMenu"></div>

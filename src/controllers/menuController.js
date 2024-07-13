@@ -1,34 +1,38 @@
 // src/controllers/menuController.js
-
 import db from '../db/db.js';
 import pool from '../db/db.js';
 
 const getAllMenues = async (req, res) => {
     try {
         const sql = 'SELECT * FROM menues';
-        const result = await db.query(sql);
+        const result = await pool.query(sql);
         res.json(result[0]);
     } catch (error) {
-        console.error('Error al obtener los menues:', error);
-        res.status(500).send('Error al obtener los menues');
+        console.error('Error al obtener los menús:', error);
+        res.status(500).send('Error al obtener los menús');
     }
 };
 
 const getMenuById = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    const sql = `SELECT * FROM menues WHERE id = ?`;
+
+    if (isNaN(id)) {
+        return res.status(400).send('ID no válido');
+    }
+
+    const sql = 'SELECT * FROM menues WHERE idmenu = ?';
 
     try {
         const [rows] = await pool.query(sql, [id]);
 
-        if (rows.length > 0) {
-            res.json(rows[0]);
+        if (rows.length === 0) {
+            return res.status(404).send('Menú no encontrado');
         } else {
-            res.status(404).send('Menú no encontrado');
+            return res.json(rows[0]);
         }
     } catch (error) {
         console.error('Error al obtener el menú por ID:', error);
-        res.status(500).send('Error interno del servidor');
+        return res.status(500).send('Ocurrió un error al obtener el menú. Por favor, intente nuevamente.');
     }
 };
 
@@ -37,9 +41,9 @@ const createMenu = async (req, res) => {
     const sql = 'INSERT INTO menues (nombre, precio, imagen, descripcion, isdisponible) VALUES (?, ?, ?, ?, ?)';
 
     try {
-        const [result] = await db.query(sql, [nombre, precio, imagen, descripcion, isdisponible]);
+        const [result] = await pool.query(sql, [nombre, precio, imagen, descripcion, isdisponible]);
         const newMenu = { id: result.insertId, nombre, precio, imagen, descripcion, isdisponible };
-        res.json({ message: 'Menu created', menu: newMenu });
+        res.json({ message: 'Menú creado', menu: newMenu });
     } catch (error) {
         console.error('Error al crear el menú:', error);
         res.status(500).send('Error interno del servidor');
@@ -48,34 +52,26 @@ const createMenu = async (req, res) => {
 
 const updateMenu = async (req, res) => {
     const id = parseInt(req.params.id, 10);
-    const { nombre, precio, imagen, descripcion, isdisponible } = req.body;
-
-    // Validación de datos
-    if (!nombre || !precio || !descripcion || typeof isdisponible === 'undefined') {
-        return res.status(400).send('Todos los campos requeridos deben estar presentes');
-    }
 
     if (isNaN(id)) {
         return res.status(400).send('ID no válido');
     }
 
-    const precioRegex = /^\$?\d{1,3}(,\d{3})*(\.\d{2})?$/;
-    if (!precioRegex.test(precio)) {
-        return res.status(400).send('Formato de precio no válido');
-    }
+    const { nombre, precio, imagen, descripcion, isdisponible } = req.body;
 
-    const precioDecimal = parseFloat(precio.replace(/[\$,]/g, ''));
-    const disponible = Boolean(Number(isdisponible));
+    if (!nombre || !precio || !descripcion || typeof isdisponible === 'undefined') {
+        return res.status(400).send('Todos los campos requeridos deben estar presentes');
+    }
 
     const sql = `UPDATE menues SET nombre = ?, precio = ?, imagen = ?, descripcion = ?, isdisponible = ? WHERE idmenu = ?`;
 
     try {
-        const [result] = await db.query(sql, [nombre, precioDecimal, imagen, descripcion, disponible, id]);
+        const [result] = await pool.query(sql, [nombre, precio, imagen, descripcion, isdisponible, id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).send('Menú no encontrado');
         } else {
-            const updatedMenu = { id: id, nombre, precio: precioDecimal, imagen, descripcion, isdisponible: disponible };
+            const updatedMenu = { id, nombre, precio, imagen, descripcion, isdisponible };
             return res.json({ message: 'Menú actualizado', menu: updatedMenu });
         }
     } catch (error) {
@@ -90,8 +86,7 @@ const deleteMenu = async (req, res) => {
     const deleteSql = 'DELETE FROM menues WHERE idmenu = ?';
 
     try {
-        // Recuperar los datos del menu antes de eliminarlo
-        const [rows] = await db.query(selectSql, [id]);
+        const [rows] = await pool.query(selectSql, [id]);
 
         if (rows.length === 0) {
             res.status(404).send('Menú no encontrado');
@@ -100,13 +95,12 @@ const deleteMenu = async (req, res) => {
 
         const menuToDelete = rows[0];
 
-        // Eliminar menu
-        const [result] = await db.query(deleteSql, [id]);
+        const [result] = await pool.query(deleteSql, [id]);
 
         if (result.affectedRows === 0) {
             res.status(404).send('Menú no encontrado');
         } else {
-            res.json({ message: 'Menu deleted', menu: menuToDelete });
+            res.json({ message: 'Menú eliminado', menu: menuToDelete });
         }
     } catch (error) {
         console.error('Error al eliminar el menú:', error);
@@ -114,6 +108,4 @@ const deleteMenu = async (req, res) => {
     }
 };
 
-
-
-export {getAllMenues,getMenuById,createMenu,updateMenu,deleteMenu};
+export { getAllMenues, getMenuById, createMenu, updateMenu, deleteMenu };

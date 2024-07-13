@@ -1,7 +1,7 @@
 //public/js/editarMenu.js
 class Menu {
-    constructor(idmenu, nombre, precio, imagen, descripcion, isdisponible) {
-        this.idmenu = idmenu;
+    constructor(id, nombre, precio, imagen, descripcion, isDisponible) {
+        this.id = id;
         this.nombre = nombre;
         this.precio = precio;
         this.imagen = imagen;
@@ -9,11 +9,10 @@ class Menu {
         this.isdisponible = isdisponible;
     }
 }
-
 async function handleFormSubmit(event) {
     event.preventDefault();
-    // Obtener datos del formulario
 
+    // Obtener datos del formulario
     let id = document.querySelector('input[name="id"]').value;
     let nombre = document.querySelector('input[name="nombre"]').value;
     let precio = document.querySelector('input[name="precio"]').value;
@@ -30,15 +29,24 @@ async function handleFormSubmit(event) {
         alert("Por favor, ingrese la descripción del menú.");
         return false;
     }
+    if (!validarPrecio(precio)) {
+        alert("Por favor, ingrese un precio válido.");
+        return false;
+    }
+    if (!validarDisponibilidad(isDisponible)) {
+        alert("Por favor, seleccione la disponibilidad del menú.");
+        return false;
+    }
+
     const menu = JSON.parse(localStorage.getItem('menuAEditar'));
     let editadoMenu = {
         idmenu: menu.idmenu,
         nombre,
-        precio,
+        precio: parseFloat(precio.replace(/,/g, '')), // Convertir a número
         descripcion,
         isdisponible: isDisponible === '1' // Convertir a booleano
     };
-    //console.log(editadoMenu);
+
     if (imagenMenu) {
         // Convertir imagen a base64 para enviarla
         let reader = new FileReader();
@@ -72,7 +80,14 @@ async function enviarDatos(datosMenu) {
         });
 
         if (!response.ok) {
-            throw new Error('Error al editar el menú');
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.indexOf('application/json') !== -1) {
+                const errorData = await response.json();
+                throw new Error(`Error al editar el menú: ${errorData.message}`);
+            } else {
+                const errorText = await response.text();
+                throw new Error(`Error al editar el menú: ${errorText}`);
+            }
         }
 
         const data = await response.json();
@@ -81,6 +96,7 @@ async function enviarDatos(datosMenu) {
 
     } catch (error) {
         console.error('Error al editar el menú:', error.message);
+        alert(`Error al editar el menú: ${error.message}`);
         // Manejar el error según sea necesario en el cliente
     }
 }
@@ -90,9 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem("token");
     const userString = localStorage.getItem("user");
 
-
     if (!token || !userString) {
-        // Manejar caso de usuario no autenticado
         cambiarFondo();
         alert('No tiene acceso a la página');
         window.location.href = "/";
@@ -101,12 +115,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const menu = JSON.parse(localStorage.getItem('menuAEditar'));
     if (menu) {
-        document.querySelector('input[name="id"]').value = menu.id;
+        document.querySelector('input[name="id"]').value = menu.idmenu;
         document.querySelector('input[name="nombre"]').value = menu.nombre;
         document.querySelector('input[name="precio"]').value = menu.precio;
         document.querySelector('textarea[name="comentarios"]').value = menu.descripcion;
-        document.querySelector('select[name="disponibilidad"]').value = menu.isDisponible ? '1' : '0';
+        document.querySelector('select[name="disponibilidad"]').value = menu.isdisponible ? '1' : '0';
     }
+
+    // Agregar evento input para validar el precio en tiempo real
+    document.querySelector('input[name="precio"]').addEventListener('input', function() {
+        validateCurrency(this.value);
+    });
 });
 
 function cambiarFondo() {
@@ -126,30 +145,20 @@ function validarComentario(descripcion) {
     return descripcion.trim() !== '';
 }
 
-async function validarMenuUnico(nombre) {
-    try {
-        const response = await fetch('/menues', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        const menues = await response.json();
-        return menues.some(menu => menu.nombre === nombre);
-    } catch (error) {
-        console.error('Error al validar el menú:', error);
-        return false;
-    }
+function validarPrecio(precio) {
+    var currencyRegex = /^\d{1,10}(\.\d{1,2})?$/; // Ajustado para 10 dígitos enteros y hasta 2 decimales
+    var numericValue = parseFloat(precio.replace(/,/g, ''));
+    return currencyRegex.test(precio) && numericValue > 0;
 }
-function validateCurrency() {
-    var input = document.getElementById("currencyInput").value.trim(); // Obtener el valor y eliminar espacios en blanco al inicio y al final
+
+function validarDisponibilidad(isDisponible) {
+    return ['0', '1'].includes(isDisponible);
+}
+
+function validateCurrency(input) {
     var message = document.getElementById("currencyMessage");
-
-    // Regex actualizado para permitir números positivos con hasta 12 dígitos enteros y dos decimales opcionales
-    var currencyRegex = /^\d{1,12}(\.\d{1,2})?$/;
-
-    // Verificar si el número es válido y convertirlo a número
-    var numericValue = parseFloat(input);
+    var currencyRegex = /^\d{1,10}(\.\d{1,2})?$/; // Ajustado para 10 dígitos enteros y hasta 2 decimales
+    var numericValue = parseFloat(input.replace(/,/g, ''));
 
     if (currencyRegex.test(input) && numericValue > 0) {
         message.style.color = "green";
