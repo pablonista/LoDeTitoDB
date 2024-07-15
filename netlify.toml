@@ -1,9 +1,14 @@
 [build]
-  command = "npm run build"  # Cambia esto a tu comando de build si tienes uno, o elimínalo si no lo necesitas
-  publish = "public"         # Cambia esto a la carpeta donde se encuentren tus archivos estáticos, si aplica
+  base = "."
+  publish = "public"
+  command = "npm install && npm run build"
 
-[context.production.environment]
-  NODE_VERSION = "16.13.0"   # Asegúrate de usar la versión de Node.js que necesitas
+[build.environment]
+  NODE_VERSION = "14" # Asegúrate de usar la versión de Node.js que necesitas
+
+[dev]
+  command = "npm start"
+  port = 8888
 
 [[redirects]]
   from = "/*"
