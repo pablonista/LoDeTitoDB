@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"  # Cambia esto a tu comando de build si tienes uno, o elimínalo si no lo necesitas
+  publish = "public"         # Cambia esto a la carpeta donde se encuentren tus archivos estáticos, si aplica
+
+[context.production.environment]
+  NODE_VERSION = "16.13.0"   # Asegúrate de usar la versión de Node.js que necesitas
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
